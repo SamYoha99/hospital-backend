@@ -44,7 +44,7 @@ jobs:
 
       - name: Update Kubernetes Deployment file
         run: |
-          sed -i "s+silverfox2022/hospital-app-backend:.*+${{ secrets.REGISTRY_NAME }}/hospital-app-backend:${{ github.run_number }}+g" deployment/deploy.yaml
+          sed -i "s+adminsam99/hospital-app-backend:.*+${{ secrets.REGISTRY_NAME }}/hospital-app-backend:${{ github.run_number }}+g" deployment/deploy.yaml
 
       - name: Authenticate to GCP and set up GKE
         run: |
