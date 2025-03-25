@@ -3,7 +3,7 @@ name: hospital Backend Pipeline
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   Continues-Integration_build_and_push:
