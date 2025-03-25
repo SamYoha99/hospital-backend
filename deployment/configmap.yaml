@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: hospital-backend-config
 data:
-  DB_HOST: "fox-hipaa-capstone18-server.mysql.database.azure.com"
+  DB_HOST: "35.184.50.253"
   DB_PORT: "3306"
   DB_NAME: "dental_management_system"
