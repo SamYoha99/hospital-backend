@@ -52,8 +52,16 @@ jobs:
           echo "${{ secrets.GCP_SA_KEY }}" > $HOME/gcp-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp-key.json
 
-          # Install the gke-gcloud-auth-plugin for kubectl authentication using apt-get
-          sudo apt-get update && sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
+          # Install dependencies and Google Cloud SDK
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https ca-certificates gnupg
+
+          # Add Google Cloud SDK repository and install
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo tee /usr/share/keyrings/cloud.google.gpg
+
+          # Install Google Cloud SDK and the GKE Auth plugin
+          sudo apt-get update && sudo apt-get install -y google-cloud-sdk google-cloud-sdk-gke-gcloud-auth-plugin
 
           # Set the Google Cloud project and region/zone
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
