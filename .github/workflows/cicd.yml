@@ -20,7 +20,7 @@ jobs:
         run: docker build -t docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:${{ github.run_number }} .
 
       - name: Log in to Docker Registry with short-lived credentials
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Push image to Docker Registry
         run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:${{ github.run_number }}
@@ -52,8 +52,8 @@ jobs:
           echo "${{ secrets.GCP_SA_KEY }}" > $HOME/gcp-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp-key.json
 
-          # Install the gke-gcloud-auth-plugin for kubectl authentication
-          gcloud components install gke-gcloud-auth-plugin
+          # Install the gke-gcloud-auth-plugin for kubectl authentication using apt-get
+          sudo apt-get update && sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
 
           # Set the Google Cloud project and region/zone
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
@@ -61,7 +61,7 @@ jobs:
           gcloud config set compute/zone ${{ secrets.GCP_COMPUTE_ZONE }}
 
           # Get credentials for the GKE cluster using the auth plugin
-          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GCP_COMPUTE_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }} --authentication-plugin=gke-gcloud-auth-plugin
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GCP_COMPUTE_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Deploy to GKE
         run: |
