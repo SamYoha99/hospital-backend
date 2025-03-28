@@ -17,14 +17,14 @@ spec:
           image: adminsam99/hospital-app-backend # Replace this with your Docker image name
           ports:
             - containerPort: 8080
-      resources:
-      requests:
-        memory: "256Mi"
-        cpu: "250m"
-      limits:
-        memory: "512Mi"
-        cpu: "500m"
-        env:
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
             - name: DB_HOST
               valueFrom:
                 configMapKeyRef:
