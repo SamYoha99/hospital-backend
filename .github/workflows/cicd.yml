@@ -16,11 +16,11 @@ jobs:
           repository: SamYoha99/hospital-backend
           ref: master
 
-      - name: Build container image
-        run: docker build -t docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:${{ github.run_number }} .
-
       - name: Log in to Docker Registry with short-lived credentials
         run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build container image
+        run: docker build -t docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:${{ github.run_number }} .
 
       - name: Push image to Docker Registry
         run: docker push docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:${{ github.run_number }}
@@ -46,40 +46,28 @@ jobs:
         run: |
           sed -i "s+docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:.*+docker.io/${{ secrets.DOCKER_USERNAME }}/hospital-app-backend:${{ github.run_number }}+g" deployment/deploy.yaml
 
-      - name: Authenticate to GCP and set up GKE
+      - name: Authenticate to GCP
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
         run: |
-          # Authenticate to GCP using the service account key
-          echo "${{ secrets.GCP_SA_KEY }}" > $HOME/gcp-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp-key.json
-
-          # Install dependencies and Google Cloud SDK
-          sudo apt-get update
-          sudo apt-get install -y apt-transport-https ca-certificates gnupg
-
-          # Download and add the Google Cloud SDK GPG key
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo tee /usr/share/keyrings/cloud.google.gpg > /dev/null
-
-          # Add Google Cloud SDK repository and install
-          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          sudo apt-get update
-          sudo apt-get install -y google-cloud-sdk google-cloud-sdk-gke-gcloud-auth-plugin
-
-          # Set the Google Cloud project and region/zone
+          echo "$GOOGLE_APPLICATION_CREDENTIALS" > gcp-key.json
+          gcloud auth activate-service-account --key-file=gcp-key.json
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          gcloud config set compute/region ${{ secrets.GCP_COMPUTE_REGION }}
-          gcloud config set compute/zone ${{ secrets.GCP_COMPUTE_ZONE }}
 
-          # Get credentials for the GKE cluster using the auth plugin
-          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GCP_COMPUTE_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Deploy to GKE
+      - name: Install gke-gcloud-auth-plugin
         run: |
-          # Apply Kubernetes configurations
-          kubectl apply -f clusterissuer.yaml
-          kubectl apply -f deployment/deploy.yaml
+          sudo apt-get update 
+          sudo apt-get install apt-transport-https ca-certificates gnupg curl -y
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          sudo apt-get update && sudo apt-get install google-cloud-cli -y
+          sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin -y
 
-          # Sleep for 20 seconds to allow deployment to propagate
-          sleep 20
+      - name: Configure kubectl for GKE
+        run: |
+          gcloud container clusters get-credentials dev-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}
 
-          # Verify that the pod is running
+      - name: Deploy Hospital Backend to Kubernetes
+        run: |
+          kubectl apply -f deployment
           kubectl get pod
