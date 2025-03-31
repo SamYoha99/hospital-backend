@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: hospital-backend-config
 data:
-  DB_HOST: "34.170.127.30"
+  DB_HOST: "35.224.175.140"
   DB_PORT: "3306"
   DB_NAME: "dental_management_system"
