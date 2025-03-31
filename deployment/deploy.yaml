@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: hospital-backend-container
-          image: adminsam99/hospital-app-backend # Replace this with your Docker image name
+          image: adminsam99/hospital-app-backend:14 # Replace this with your Docker image name
           ports:
             - containerPort: 8080
           resources:
