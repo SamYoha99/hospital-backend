@@ -70,20 +70,5 @@ jobs:
       - name: Deploy Hospital Backend to Kubernetes
         run: |
           kubectl apply -f deployment
-
-      - name: Wait for Pod to be Ready
-        run: |
-          kubectl wait --for=condition=ready pod -l app=hospital-backend --timeout=600s
-
-      - name: Check Pod Status
-        run: |
-          kubectl get pods -l app=hospital-backend
-          kubectl describe pod -l app=hospital-backend
-
-      - name: Get Pod Logs for Debugging (if not running)
-        run: |
-          kubectl get pods -l app=hospital-backend -o name | xargs -I {} kubectl logs {} || echo "No logs available"
-      
-      - name: Get Kubernetes Events (if pod is stuck in ContainerCreating)
-        run: |
-          kubectl get events --namespace=default | grep hospital-backend || echo "No events found"
+          sleep 30
+          kubectl get pod
